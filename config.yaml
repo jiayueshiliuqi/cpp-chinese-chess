@@ -1,0 +1,60 @@
+# === 网络 ===
+network:
+  in_channels: 15
+  channels: 128
+  num_blocks: 10
+  num_actions: 2238
+
+# === MCTS ===
+mcts:
+  num_simulations: 200
+  c_puct: 2.0
+  dirichlet_alpha: 0.3
+  dirichlet_eps: 0.25
+  temperature_moves: 30    # 前 30 手 τ=1，之后 τ→0.25
+
+# === Self-play ===
+selfplay:
+  random_opening_moves: 2   # 前 n 步强制随机开局；0=关闭
+#  games_per_iter: 200
+#  parallel_games: 128
+  max_moves: 300           # 超过判和，防死循环
+  num_workers: 6               # 新增：开几个 self-play 进程，先从 4 起
+  parallel_games_per_worker: 128  # 新增：每个进程内部同时下多少局
+  games_per_worker_batch: 32
+  draw_value: 0.0
+  max_moves_draw_value: -0.02
+  repetition_draw_value: -0.01
+  # parallel_games: 64         # 旧的单进程字段，num_workers>1 时不再用，可留着
+
+# === 训练 ===
+train:
+  batch_size: 512
+  lr: 0.01
+  lr_min: 0.0002
+  weight_decay: 0.0001
+  value_weight: 1.0
+  momentum: 0.9
+  optimizer: sgd           # sgd | adamw
+  buffer_size: 500000
+  steps_per_iter: 1000     # 每轮采样多少 batch 训练
+  target_replay_ratio: 2.0
+  lr_decay_iters: 100
+  device: cuda
+
+# === 评估 ===
+eval:
+  num_games: 15
+  win_threshold: 0.55
+  mcts_simulations: 128    # 评估时 MCTS 模拟数
+  eval_every: 15
+  num_workers: 2   # 单卡评估只开 1 个进程，避免和 collect worker 抢 GPU
+  anchor_every: 15    # 每 30 个 iter vs random anchor 一次,省显存
+  anchor_games: 15    # vs anchor 的对局数,不写就用 num_games
+
+# === Pipeline ===
+pipeline:
+  num_iterations: 9999
+  checkpoint_dir: checkpoints
+  log_dir: logs
+  seed: 42
